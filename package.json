@@ -1,0 +1,35 @@
+{
+  "name": "rest_s3_interface",
+  "version": "1.0.0",
+  "description": "A backend program that interfaces with Amazon's S3 database via node SDK",
+  "main": "server.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "body-parser": "^1.15.0",
+    "chai": "^3.5.0",
+    "chai-http": "^2.0.1",
+    "express": "^4.13.4",
+    "gulp": "^3.9.1",
+    "install": "^0.6.0",
+    "mocha": "^2.4.5",
+    "mongoose": "^4.4.8",
+    "npm": "^3.8.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lwenke01/rest_S3_interface.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lwenke01/rest_S3_interface/issues"
+  },
+  "homepage": "https://github.com/lwenke01/rest_S3_interface#readme"
+}
