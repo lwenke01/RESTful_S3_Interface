@@ -8,7 +8,8 @@ let fileSchema = new Schema({
     ref: 'User'
   },
   fileName: String,
-  url: String,
+  // url: String,
+  content: String,
   updated: {type: Date, default: Date.now }
 });
 

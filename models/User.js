@@ -1,10 +1,9 @@
 'use strict';
 let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
-
 let userSchema = new Schema({
-  userName: String,
-  files: [{type: String, ref: 'File'}],
+  user: String,
+  files: [{type: Schema.ObjectId, ref: 'File'}],
   updated: {type: Date, default: Date.now }
 
 });
