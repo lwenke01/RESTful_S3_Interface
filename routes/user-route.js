@@ -40,22 +40,21 @@ router.route('/users/:user')
 })
 .put((req, res)=>{
   console.log('PUT /users:user was hit');
-  User.findByIdAndUpdate(req.params.user, req.body, (err)=>{
+  User.findByIdAndUpdate(req.params.id, req.body, (err)=>{
     if (err) res.send(err);
     res.json({msg: 'updated'});
+
   });
 })
 .delete((req, res)=>{
   console.log('DELETE was hit for /users/:user');
-  User.find({user: req.params.user}, (err, user)=>{
-    user.remove((err)=>{
-      if (err) res.send(err);
+  User.findByIdAndRemove(req.params.id, (err)=>{
+    if (err) res.send(err);
       res.json({msg: 'deleted user'});
     });
   });
-});
+// });
 
-//user files
 router.route('/users/:user/files')
   .post((req, res)=>{
     console.log('post was hit for /files');
@@ -63,13 +62,13 @@ router.route('/users/:user/files')
     s3.putObject(params,(err)=> {
       console.log(err);
       s3.getSignedUrl('putObject', params, (err, url)=>{
-        var newFile = new File({url: url});
+        var newFile = new File();
         newFile.save((err, file)=>{
           if (err) res.send(err);
-          User.findByIdAndUpdate(req.params.user, {$push: {files: file._id}}, (err, file)=>{
+          User.findByIdAndUpdate(req.params.id, {$push: {files: file._id, url: url}}, (err, file)=>{
             if (err) res.send(err);
             res.json(file);
-            res.end();
+
           });
         });
       });
@@ -78,10 +77,10 @@ router.route('/users/:user/files')
 
 .get((req, res)=>{
   console.log('GET /users/:user/files was hit');
-  User.find({user: req.params.user})
+  User.findById({_id: req.params.user})
   .populate('files')
   .exec((err, user)=>{
-    if(err) res.send(err);
+    if(!user) res.send(err);
     res.json(user);
   });
 });
