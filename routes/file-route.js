@@ -12,20 +12,6 @@ var s3 = new AWS.S3();
 router.use(bodyParser.json());
 
 router.route('/files')
-.post((req, res)=>{
-  console.log('post was hit for /files');
-  var params = {Bucket: 'lw401restbucket', Key: req.body.fileName, ACL:'public-read-write', Body: JSON.stringify(req.body.content)};
-  s3.putObject(params,(err)=> {
-    console.log(err);
-    s3.getSignedUrl('putObj', params, (err, url)=>{
-      var newFile = new File({url: url});
-      newFile.save((err, file)=>{
-        if (err) res.send(err);
-        res.json(file);
-      });
-    });
-  });
-})
 .get((req, res)=>{
   console.log('get /files was hit');
   File.find({}, (err, files)=>{
@@ -33,7 +19,6 @@ router.route('/files')
     res.json(files);
   });
 });
-//files/:file route
 router.route('/files/:file')
 .get((req, res)=>{
   console.log('Get /files/:file was hit');
@@ -44,9 +29,17 @@ router.route('/files/:file')
 })
 .put((req, res)=>{
   console.log('PUT /files/:file was hit');
-  File.findByIdAndUpdate(req.params.file, req.body, (err)=>{
-    if(err) res.send(err);
-    res.json({msg: 'updated file'});
+  var params = {Bucket: 'lw401restbucket', Key: req.body.fileName, ACL: 'public-read-write', Body: req.body.content};
+  s3.putObject(params,(err)=> {
+    console.log(err);
+    s3.getSignedUrl('putObject', params, (err, file)=>{
+      File.findByIdAndUpdate(req.params.id, {$push: {fileName: file._id}}, (err, file)=>{
+        if (err) res.send(err);
+        res.json({
+          data: file,
+          msg: 'updated file'});
+      });
+    });
   });
 })
 .delete((req, res)=>{
