@@ -9,7 +9,6 @@ let fileSchema = new Schema({
   },
   fileName: String,
   url: String,
-  content: String,
   updated: {type: Date, default: Date.now }
 });
 
