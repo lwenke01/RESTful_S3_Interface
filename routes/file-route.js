@@ -14,7 +14,7 @@ router.use(bodyParser.json());
 router.route('/files')
 .post((req, res)=>{
   console.log('post was hit for /files');
-  var params = {Bucket: 'lw401restbucket', Key: req.body.fileName, Body: req.body.content};
+  var params = {Bucket: 'lw401restbucket', Key: req.body.fileName, ACL:'public-read-write', Body: JSON.stringify(req.body.content)};
   s3.putObject(params,(err)=> {
     console.log(err);
     s3.getSignedUrl('putObj', params, (err, url)=>{
@@ -30,7 +30,7 @@ router.route('/files')
   console.log('get /files was hit');
   File.find({}, (err, files)=>{
     if(err) res.send(err);
-    res.json({data: files});
+    res.json(files);
   });
 });
 //files/:file route

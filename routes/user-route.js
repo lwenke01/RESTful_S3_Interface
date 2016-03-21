@@ -7,7 +7,7 @@ let File = require('../models/File');
 var AWS = require('aws-sdk');
 AWS.config.region = 'us-west-2';
 var s3 = new AWS.S3();
-// var s3 = new AWS.S3();
+
 
 
 router.use(bodyParser.json());
@@ -18,13 +18,13 @@ router.route('/users')
   var newUser = new User(req.body);
   newUser.save((err, user)=>{
     if (err) res.send(err);
-    res.json({data: user});
+    res.json(user);
   });
 
 })
 .get((req, res)=>{
   console.log('GET hit for /users');
-  User.find({}, (err, users)=>{
+  User.find({}).populate('files').exec( (err, users)=>{
     if(err) res.send(err);
     res.json(users);
   });
@@ -57,33 +57,25 @@ router.route('/users/:user')
 
 //user files
 router.route('/users/:user/files')
-// .post((req, res)=>{
   .post((req, res)=>{
     console.log('post was hit for /files');
-    var params = {Bucket: 'lw401restbucket', Key: req.body.user.fileName, Body: req.body.content};
+    var params = {Bucket: 'lw401restbucket', Key: req.body.fileName, ACL: 'public-read-write', Body: JSON.stringify(req.body.content)};
     s3.putObject(params,(err)=> {
       console.log(err);
-      s3.getSignedUrl('putObj', params, (err, content)=>{
-        var newFile = new File({content: content});
+      s3.getSignedUrl('putObject', params, (err, url)=>{
+        var newFile = new File({url: url});
         newFile.save((err, file)=>{
           if (err) res.send(err);
-          res.json(file);
+          User.findByIdAndUpdate(req.params.user, {$push: {files: file._id}}, (err, file)=>{
+            if (err) res.send(err);
+            res.json(file);
+            res.end();
+          });
         });
       });
     });
   })
-//   console.log('POST /users/:user/files was hit');
-//   var newFile = new File({
-//     _user: req.params.user,
-//     fileName: req.body.fileName,
-//     // url: req.body.url,
-//     content: req.body.content
-//   });
-//   newFile.save((err, file)=>{
-//     if (err) res.send(err);
-//     res.json(file);
-//   });
-// })
+
 .get((req, res)=>{
   console.log('GET /users/:user/files was hit');
   User.find({user: req.params.user})
