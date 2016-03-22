@@ -19,6 +19,7 @@ router.route('/users')
   newUser.save((err, user)=>{
     if (err) res.send(err);
     res.json(user);
+
   });
 
 })
@@ -26,34 +27,44 @@ router.route('/users')
   console.log('GET hit for /users');
   User.find({}).populate('files').exec( (err, users)=>{
     if(err) res.send(err);
-    res.json(users);
+    res.json({data: users});
+
   });
 });
 router.route('/users/:user')
 .get((req, res)=>{
   console.log('GET /users/:user was hit');
-  User.findById(req.params.user, (err, user)=>{
+  User.findById(req.params.user).populate('files').exec((err, user)=>{
     if(err) res.send(err);
     res.json(user);
-    console.log('USER: ' + user);
+
   });
 })
 .put((req, res)=>{
   console.log('PUT /users:user was hit');
-  User.findByIdAndUpdate(req.params.id, req.body, (err)=>{
+  User.findByIdAndUpdate(req.params.user, req.body, (err, user)=>{
     if (err) res.send(err);
-    res.json({msg: 'updated'});
+    res.json(user);
 
   });
 })
 .delete((req, res)=>{
   console.log('DELETE was hit for /users/:user');
-  User.findByIdAndRemove(req.params.id, (err)=>{
-    if (err) res.send(err);
-      res.json({msg: 'deleted user'});
+  User.findById({_id: req.params.user}).populate('files').exec((err, user)=>{
+    console.log(user);
+    var params = {Bucket: 'lw401restbucket', Key: req.body.fileName};
+    s3.deleteObject(params, (err, data)=>{
+      if(err) res.send(err);
+      console.log(data);
+    });
+    User.remove((err, user)=>{
+      console.log(user + 'is now deleted');
     });
   });
-// });
+
+});
+
+
 
 router.route('/users/:user/files')
   .post((req, res)=>{
@@ -68,6 +79,7 @@ router.route('/users/:user/files')
           User.findByIdAndUpdate(req.params.id, {$push: {files: file._id, url: url}}, (err, file)=>{
             if (err) res.send(err);
             res.json(file);
+            res.end();
 
           });
         });
@@ -82,6 +94,7 @@ router.route('/users/:user/files')
   .exec((err, user)=>{
     if(!user) res.send(err);
     res.json(user);
+    res.end();
   });
 });
 module.exports = router;

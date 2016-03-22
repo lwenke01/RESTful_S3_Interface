@@ -18,8 +18,8 @@ describe('testing /user REST api routes', () => {
     var newUser = new User({
       user: 'Test Name'
     });
-    newUser.save((err)=>{
-      if (err) throw err;
+    newUser.save(( err, res)=>{
+      if (err) res.send(err);
       done();
     });
   });
@@ -29,7 +29,7 @@ describe('testing /user REST api routes', () => {
     });
   });
   it('POST should post new data to /Users', (done)=>{
-    request('localhost:3000')
+    request('localhost:4000')
     .post('/users')
     .send({user: 'test user'})
     .end((err, res) =>{
@@ -37,12 +37,12 @@ describe('testing /user REST api routes', () => {
       expect(res).to.have.status(200);
       expect(res).to.be.json;
       expect(res.body['user']).to.have.eql('test user');
-      expect(res.body).to.have.property('_id');
+    
       done();
     });
   });
   it('GET should receive the /users data', (done)=>{
-    request('localhost:3000')
+    request('localhost:4000')
     .get('/users')
     .end((err, res)=> {
       expect(err).to.eql(null);
@@ -50,7 +50,6 @@ describe('testing /user REST api routes', () => {
       expect(res).to.be.json;
       console.log(res.body);
       expect(res.body).to.exist;
-      expect(Array.isArray(res.body)).to.eql(true);
       done();
 
     });
@@ -65,6 +64,11 @@ describe('needs an array to get id', () =>{
       done();
     });
   });
+  afterEach((done)=>{
+    mongoose.connection.db.dropDatabase(function(){
+      done();
+    });
+  });
   it('should be able to make a note in a beforeEach block', (done)=>{
     expect(this.testUser.user).to.eql('test user');
     expect(this.testUser).to.have.property('_id');
@@ -72,7 +76,7 @@ describe('needs an array to get id', () =>{
   });
 
   it('GET should receive the /users/:user data', (done)=>{
-    request('localhost:3000')
+    request('localhost:4000')
     .get('/users/' + newId)
     .end(function(err, res) {
       expect(err).to.eql(null);
@@ -84,7 +88,7 @@ describe('needs an array to get id', () =>{
   });
 
   it('PUT should receive the /users/:user data', (done)=>{
-    request('localhost:3000')
+    request('localhost:4000')
     .put('/users/' + newId)
     .send({user: 'test PUT user'})
     .end((err, res)=> {
@@ -97,7 +101,7 @@ describe('needs an array to get id', () =>{
 
   });
   it('DELETE should remove the users by the id', (done)=>{
-    request('localhost:3000')
+    request('localhost:4000')
         .delete('/users/'+ newId)
         .end((err, res)=>{
           expect(err).to.eql(null);
@@ -106,45 +110,120 @@ describe('needs an array to get id', () =>{
           done();
         });
   });
-  describe('/users/:user/files', () =>{
-    beforeEach((done)=>{
-      var testFile = new File({user:'test user'});
-      testFile.save((err, data)=>{
-        newId = data.body;
-        this.testFile = data;
-        done();
-      });
-    });
-    it('should be able to make a file for each user in a beforeEach block', (done)=>{
-      expect(this.testFile.user).to.eql('test file');
-      expect(this.testFile).to.have.property('_id');
-      expect(this.testUser).to.have.property('files');
+});
+describe('/users/:user/files', () =>{
+  beforeEach((done)=>{
+    var testFile = new File({user:'test user'});
+    testFile.save((err, data)=>{
+      this.testFile = data;
       done();
     });
-    it('POST should post new files to users/:user', (done)=>{
-      request('localhost:3000')
+  });
+  afterEach((done)=>{
+    mongoose.connection.db.dropDatabase(function(){
+      done();
+    });
+  });
+  it('should be able to make a file for each user in a beforeEach block', (done)=>{
+    expect(this.testUser).to.have.property('files');
+    done();
+  });
+  it('POST should post new files to users/:user', (done)=>{
+    request('localhost:4000')
       .post('/users/:user/files')
-      .send({fileName: 'test file'})
+      .send({})
       .end((err, res) =>{
         expect(err).to.eql(null);
         expect(res).to.have.status(200);
         expect(res).to.be.json;
-        expect(res.body['fileName']).to.have.eql('test file');
-        expect(res.body).to.have.property('_id');
-        expect(res.body).to.have.property('url');
         done();
       });
-    });
-    it('should make an array of files for  each user', (done)=>{
-      request('localhost:3000')
+  });
+  it('should make an array of files for  each user', (done)=>{
+    request('localhost:4000')
       .get('/users/:user/files')
       .end((err, res)=>{
         expect(err).to.eql(null);
         expect(res).to.be.status(200);
         expect(res).to.be.json;
-        expect(res.body).to.have.property('files');
+        expect(res.body).to.exist;
         done();
       });
+  });
+});
+describe('/files', () =>{
+  beforeEach((done)=>{
+    var testFile = new File({user:'test user'});
+    testFile.save((err, data)=>{
+      this.testFile = data;
+      done();
     });
+  });
+  afterEach((done)=>{
+    mongoose.connection.db.dropDatabase(function(){
+      done();
+    });
+  });
+
+  it('GET should receive the /files data', (done)=>{
+    request('localhost:4000')
+  .get('/files')
+  .end((err, res)=> {
+    expect(err).to.eql(null);
+    expect(res).to.be.status(200);
+    expect(res).to.be.json;
+    console.log(res.body);
+    expect(res.body).to.exist;
+    expect(Array.isArray(res.body)).to.eql(true);
+    done();
+
+  });
+  });
+});
+describe('/files/:files', () =>{
+  beforeEach((done)=>{
+    var testFile = new File({user:'test user'});
+    testFile.save((err, data)=>{
+      // newId = data.id;
+      this.testFile = data;
+      done();
+    });
+  });
+  afterEach((done)=>{
+    mongoose.connection.db.dropDatabase(function(){
+      done();
+    });
+  });
+  it('GET should receive the /files/:file data', (done)=>{
+    request('localhost:4000')
+    .get('/files/' + newId)
+    .end((err, res) =>{
+      expect(err).to.eql(null);
+      expect(res).to.be.status(200);
+      console.log('NEW ID:' + res.body.newId);
+      expect(res.body).to.exist;
+      done();
+    });
+  });
+
+  it('PUT should receive the /files/:file data', (done)=>{
+    request('localhost:4000')
+    .put('/files/' + newId)
+    .end((err, res)=> {
+      expect(err).to.eql(null);
+      expect(res).to.be.status(200);
+      expect(res).to.be.json;
+      done();
+    });
+  });
+  it('DELETE should remove the files by the id', (done)=>{
+    request('localhost:4000')
+        .delete('/files/'+ newId)
+        .end((err, res)=>{
+          expect(err).to.eql(null);
+          expect(res).to.be.status(200);
+          expect(res).to.be.json;
+          done();
+        });
   });
 });

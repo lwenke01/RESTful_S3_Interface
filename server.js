@@ -3,7 +3,7 @@
 let mongoose = require('mongoose');
 let express = require('express');
 
-let port = process.env.PORT || 3000;
+let port = process.env.PORT || 4000;
 let DB_PORT = process.env.MONGOLAB_URI || 'mongodb://localhost/db';
 mongoose.connect(DB_PORT);
 
